@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Resell Pro"/>
+<title>iPhone Resell Pro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Sora:wght@600;700&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:'DM Mono','Courier New',monospace;background:#07070f;color:#8892b0;min-height:100vh;padding-bottom:80px;}
+button{font-family:'DM Mono','Courier New',monospace;cursor:pointer;transition:all .15s;}
+select,input{font-family:'DM Mono','Courier New',monospace;}
+select option{background:#0d0d1a;}
+::-webkit-scrollbar{width:3px;}::-webkit-scrollbar-thumb{background:#2d3555;border-radius:2px;}
+input:focus,select:focus{outline:1px solid #6366f1;}
+.chip{padding:5px 12px;border-radius:20px;border:1px solid;font-size:11px;font-weight:400;white-space:nowrap;background:transparent;}
+.chip.active{background:#1a1b3a;color:#a5b4fc;border-color:#6366f1;}
+.chip.inactive{color:#4a5270;border-color:#1a1f35;}
+.row-item{display:grid;gap:2px;padding:9px 10px;border-radius:6px;margin-bottom:2px;}
+.card{padding:14px 15px;background:#0d0d1a;border-radius:10px;border:1px solid #1a1f35;margin-bottom:10px;}
+.section-label{font-size:9px;color:#4a5270;letter-spacing:.12em;margin-bottom:7px;font-weight:500;}
+.nav-btn{background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 16px;color:#4a5270;}
+.nav-btn.active{color:#a5b4fc;}
+.nav-dot{width:18px;height:2px;background:#6366f1;border-radius:1px;}
+.repair-row{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border-radius:9px;border:1px solid #1a1f35;background:#0d0d1a;cursor:pointer;transition:all .15s;}
+.repair-row.selected{border-color:#6366f1;background:#0f1030;}
+.checkbox{width:16px;height:16px;border-radius:5px;flex-shrink:0;border:1px solid #4a5270;background:transparent;display:flex;align-items:center;justify-content:center;}
+.checkbox.checked{border-color:#6366f1;background:#6366f1;}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+
+<div id="header" style="padding:14px 16px 11px;border-bottom:1px solid #1a1f35;background:#080812;position:sticky;top:0;z-index:50;">
+  <div style="max-width:680px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;">
+    <div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:18px;">📱</span>
+        <h1 style="font-family:'Sora',sans-serif;font-size:17px;font-weight:700;background:linear-gradient(90deg,#818cf8,#a5b4fc,#2dd4bf);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">iPhone Resell Pro</h1>
+      </div>
+      <p style="font-size:9px;color:#2d3555;letter-spacing:.08em;margin-top:3px;">JOLIETTE · CAD · iPhone 12→16 · Réparations · Évaluateur</p>
+    </div>
+    <div style="text-align:right;">
+      <div style="font-size:9px;color:#2d3555;">Séries couvertes</div>
+      <div style="font-size:15px;color:#a5b4fc;font-weight:700;letter-spacing:.5px;">12 → 16</div>
+    </div>
+  </div>
+</div>
+
+<!-- CONTENT -->
+
+<div id="content" style="padding:16px;max-width:680px;margin:0 auto;"></div>
+
+<!-- BOTTOM NAV -->
+
+<div style="position:fixed;bottom:0;left:0;right:0;background:#060610;border-top:1px solid #1a1f35;display:flex;justify-content:space-around;padding:8px 0 14px;z-index:100;">
+  <button class="nav-btn active" id="nav-prix" onclick="navigate('prix')"><span style="font-size:19px;">📋</span><span style="font-size:8px;letter-spacing:.1em;">PRIX</span><div class="nav-dot" id="dot-prix"></div></button>
+  <button class="nav-btn" id="nav-repa" onclick="navigate('repa')"><span style="font-size:19px;">🔧</span><span style="font-size:8px;letter-spacing:.1em;">RÉPA</span><div class="nav-dot" id="dot-repa" style="display:none;"></div></button>
+  <button class="nav-btn" id="nav-eval" onclick="navigate('eval')"><span style="font-size:19px;">🎯</span><span style="font-size:8px;letter-spacing:.1em;">ÉVAL</span><div class="nav-dot" id="dot-eval" style="display:none;"></div></button>
+  <button class="nav-btn" id="nav-marche" onclick="navigate('marche')"><span style="font-size:19px;">📊</span><span style="font-size:8px;letter-spacing:.1em;">MARCHÉ</span><div class="nav-dot" id="dot-marche" style="display:none;"></div></button>
+</div>
+
+<script>
+// ═══════════════════════════ DATA ═══════════════════════════
+const PRICING = {
+  "iPhone 12":[
+    {model:"iPhone 12 64Go",isPro:false,buy:{mint:170,tb:160,bonne:145,scrap:"100-120"},sell:{mint:240,tb:220,bonne:195,scrap:"145-165"}},
+    {model:"iPhone 12 128Go",isPro:false,buy:{mint:195,tb:180,bonne:165,scrap:"120-140"},sell:{mint:270,tb:250,bonne:225,scrap:"165-185"}},
+    {model:"iPhone 12 256Go",isPro:false,buy:{mint:220,tb:205,bonne:185,scrap:"140-160"},sell:{mint:305,tb:280,bonne:255,scrap:"190-215"}},
+    {model:"iPhone 12 Pro 128Go",isPro:true,buy:{mint:270,tb:250,bonne:230,scrap:"170-190"},sell:{mint:365,tb:340,bonne:310,scrap:"230-255"}},
+    {model:"iPhone 12 Pro 256/512Go",isPro:true,buy:{mint:300,tb:280,bonne:260,scrap:"190-220"},sell:{mint:400,tb:375,bonne:345,scrap:"260-290"}},
+    {model:"iPhone 12 Pro Max 128Go",isPro:true,buy:{mint:290,tb:270,bonne:250,scrap:"180-210"},sell:{mint:390,tb:360,bonne:335,scrap:"245-275"}},
+    {model:"iPhone 12 Pro Max 256/512Go",isPro:true,buy:{mint:330,tb:310,bonne:290,scrap:"210-240"},sell:{mint:435,tb:405,bonne:375,scrap:"280-315"}},
+  ],
+  "iPhone 13":[
+    {model:"iPhone 13 128Go",isPro:false,buy:{mint:265,tb:245,bonne:225,scrap:"160-180"},sell:{mint:355,tb:330,bonne:300,scrap:"215-240"}},
+    {model:"iPhone 13 256Go",isPro:false,buy:{mint:295,tb:275,bonne:250,scrap:"185-205"},sell:{mint:395,tb:365,bonne:335,scrap:"245-270"}},
+    {model:"iPhone 13 512Go",isPro:false,buy:{mint:335,tb:315,bonne:285,scrap:"210-235"},sell:{mint:440,tb:410,bonne:375,scrap:"275-305"}},
+    {model:"iPhone 13 Pro 128Go",isPro:true,buy:{mint:380,tb:355,bonne:325,scrap:"245-270"},sell:{mint:495,tb:465,bonne:430,scrap:"320-350"}},
+    {model:"iPhone 13 Pro 256/512Go",isPro:true,buy:{mint:420,tb:395,bonne:360,scrap:"275-305"},sell:{mint:545,tb:510,bonne:470,scrap:"355-390"}},
+    {model:"iPhone 13 Pro Max 128Go",isPro:true,buy:{mint:405,tb:378,bonne:345,scrap:"260-290"},sell:{mint:525,tb:490,bonne:450,scrap:"340-375"}},
+    {model:"iPhone 13 Pro Max 256/512Go",isPro:true,buy:{mint:450,tb:420,bonne:385,scrap:"295-325"},sell:{mint:580,tb:545,bonne:500,scrap:"380-415"}},
+  ],
+  "iPhone 14":[
+    {model:"iPhone 14 128Go",isPro:false,buy:{mint:335,tb:315,bonne:290,scrap:"200-225"},sell:{mint:430,tb:405,bonne:370,scrap:"265-295"}},
+    {model:"iPhone 14 256Go",isPro:false,buy:{mint:370,tb:350,bonne:320,scrap:"225-250"},sell:{mint:470,tb:445,bonne:410,scrap:"295-325"}},
+    {model:"iPhone 14 Plus 128Go",isPro:false,buy:{mint:350,tb:330,bonne:305,scrap:"215-240"},sell:{mint:450,tb:425,bonne:390,scrap:"275-305"}},
+    {model:"iPhone 14 Plus 256Go",isPro:false,buy:{mint:385,tb:365,bonne:335,scrap:"240-265"},sell:{mint:490,tb:465,bonne:430,scrap:"305-335"}},
+    {model:"iPhone 14 Pro 128Go",isPro:true,buy:{mint:460,tb:435,bonne:400,scrap:"280-310"},sell:{mint:580,tb:550,bonne:510,scrap:"355-390"}},
+    {model:"iPhone 14 Pro 256/512Go",isPro:true,buy:{mint:505,tb:480,bonne:445,scrap:"315-345"},sell:{mint:635,tb:605,bonne:565,scrap:"395-430"}},
+    {model:"iPhone 14 Pro Max 128Go",isPro:true,buy:{mint:485,tb:460,bonne:425,scrap:"300-330"},sell:{mint:615,tb:580,bonne:540,scrap:"375-410"}},
+    {model:"iPhone 14 Pro Max 256/512Go",isPro:true,buy:{mint:535,tb:510,bonne:470,scrap:"335-370"},sell:{mint:675,tb:640,bonne:595,scrap:"415-455"}},
+  ],
+  "iPhone 15":[
+    {model:"iPhone 15 128Go",isPro:false,buy:{mint:450,tb:425,bonne:390,scrap:"275-305"},sell:{mint:570,tb:540,bonne:500,scrap:"345-380"}},
+    {model:"iPhone 15 256Go",isPro:false,buy:{mint:490,tb:465,bonne:430,scrap:"305-335"},sell:{mint:615,tb:585,bonne:545,scrap:"375-410"}},
+    {model:"iPhone 15 Plus 128Go",isPro:false,buy:{mint:470,tb:445,bonne:410,scrap:"290-320"},sell:{mint:595,tb:565,bonne:525,scrap:"360-395"}},
+    {model:"iPhone 15 Plus 256Go",isPro:false,buy:{mint:510,tb:485,bonne:450,scrap:"320-350"},sell:{mint:640,tb:610,bonne:570,scrap:"390-425"}},
+    {model:"iPhone 15 Pro 128Go",isPro:true,buy:{mint:610,tb:580,bonne:535,scrap:"375-415"},sell:{mint:765,tb:730,bonne:680,scrap:"465-510"}},
+    {model:"iPhone 15 Pro 256/512Go",isPro:true,buy:{mint:660,tb:630,bonne:580,scrap:"415-455"},sell:{mint:825,tb:790,bonne:740,scrap:"510-555"}},
+    {model:"iPhone 15 Pro Max 256Go",isPro:true,buy:{mint:720,tb:685,bonne:635,scrap:"455-495"},sell:{mint:900,tb:860,bonne:805,scrap:"555-605"}},
+    {model:"iPhone 15 Pro Max 512Go",isPro:true,buy:{mint:785,tb:750,bonne:695,scrap:"500-545"},sell:{mint:975,tb:935,bonne:875,scrap:"605-655"}},
+  ],
+  "iPhone 16":[
+    {model:"iPhone 16 128Go",isPro:false,buy:{mint:620,tb:590,bonne:545,scrap:"385-425"},sell:{mint:775,tb:740,bonne:690,scrap:"470-515"}},
+    {model:"iPhone 16 256Go",isPro:false,buy:{mint:665,tb:635,bonne:585,scrap:"420-460"},sell:{mint:830,tb:795,bonne:745,scrap:"510-555"}},
+    {model:"iPhone 16 Plus 128Go",isPro:false,buy:{mint:650,tb:620,bonne:570,scrap:"405-445"},sell:{mint:815,tb:780,bonne:730,scrap:"495-540"}},
+    {model:"iPhone 16 Plus 256Go",isPro:false,buy:{mint:695,tb:665,bonne:615,scrap:"440-480"},sell:{mint:870,tb:835,bonne:780,scrap:"535-580"}},
+    {model:"iPhone 16 Pro 128Go",isPro:true,buy:{mint:840,tb:800,bonne:740,scrap:"525-575"},sell:{mint:1045,tb:1005,bonne:945,scrap:"645-705"}},
+    {model:"iPhone 16 Pro 256/512Go",isPro:true,buy:{mint:900,tb:860,bonne:800,scrap:"570-625"},sell:{mint:1115,tb:1075,bonne:1015,scrap:"695-755"}},
+    {model:"iPhone 16 Pro Max 256Go",isPro:true,buy:{mint:990,tb:945,bonne:875,scrap:"625-685"},sell:{mint:1225,tb:1180,bonne:1115,scrap:"760-830"}},
+    {model:"iPhone 16 Pro Max 512Go",isPro:true,buy:{mint:1065,tb:1020,bonne:945,scrap:"675-740"},sell:{mint:1315,tb:1270,bonne:1200,scrap:"820-895"}},
+  ],
+};
+
+const CONDITIONS=[
+  {key:"mint",label:"Mint",sub:"90%+",color:"#22c55e"},
+  {key:"tb",label:"Très bonne",sub:"85–89%",color:"#84cc16"},
+  {key:"bonne",label:"Bonne",sub:"80–84%",color:"#eab308"},
+  {key:"scrap",label:"Scrap",sub:"<80%",color:"#f97316"},
+];
+
+const REPAIRS={
+  "Écran":{"iPhone 12":[45,25],"iPhone 12 Pro":[65,30],"iPhone 12 Pro Max":[70,30],"iPhone 13":[55,30],"iPhone 13 Pro":[80,35],"iPhone 13 Pro Max":[85,35],"iPhone 14":[70,35],"iPhone 14 Plus":[75,35],"iPhone 14 Pro":[110,45],"iPhone 14 Pro Max":[120,45],"iPhone 15":[85,40],"iPhone 15 Plus":[90,40],"iPhone 15 Pro":[130,50],"iPhone 15 Pro Max":[145,50],"iPhone 16":[100,45],"iPhone 16 Plus":[105,45],"iPhone 16 Pro":[155,55],"iPhone 16 Pro Max":[170,55]},
+  "Batterie":{"iPhone 12":[25,20],"iPhone 12 Pro":[25,20],"iPhone 12 Pro Max":[28,22],"iPhone 13":[27,22],"iPhone 13 Pro":[27,22],"iPhone 13 Pro Max":[30,25],"iPhone 14":[32,25],"iPhone 14 Plus":[32,25],"iPhone 14 Pro":[35,25],"iPhone 14 Pro Max":[35,25],"iPhone 15":[34,25],"iPhone 15 Plus":[34,25],"iPhone 15 Pro":[37,28],"iPhone 15 Pro Max":[37,28],"iPhone 16":[38,28],"iPhone 16 Plus":[38,28],"iPhone 16 Pro":[42,30],"iPhone 16 Pro Max":[42,30]},
+  "Vitre arrière":{"iPhone 12":[20,50],"iPhone 12 Pro":[30,60],"iPhone 12 Pro Max":[35,65],"iPhone 13":[22,50],"iPhone 13 Pro":[32,60],"iPhone 13 Pro Max":[37,65],"iPhone 14":[25,35],"iPhone 14 Plus":[28,35],"iPhone 14 Pro":[40,45],"iPhone 14 Pro Max":[45,48],"iPhone 15":[28,35],"iPhone 15 Plus":[30,35],"iPhone 15 Pro":[45,45],"iPhone 15 Pro Max":[50,48],"iPhone 16":[30,35],"iPhone 16 Plus":[32,35],"iPhone 16 Pro":[48,45],"iPhone 16 Pro Max":[55,48]},
+  "Port de charge":{"iPhone 12":[18,35],"iPhone 12 Pro":[20,35],"iPhone 12 Pro Max":[20,38],"iPhone 13":[18,35],"iPhone 13 Pro":[20,35],"iPhone 13 Pro Max":[20,38],"iPhone 14":[20,35],"iPhone 14 Plus":[20,35],"iPhone 14 Pro":[22,38],"iPhone 14 Pro Max":[22,38],"iPhone 15":[22,35],"iPhone 15 Plus":[22,35],"iPhone 15 Pro":[25,38],"iPhone 15 Pro Max":[25,38],"iPhone 16":[24,35],"iPhone 16 Plus":[24,35],"iPhone 16 Pro":[28,38],"iPhone 16 Pro Max":[28,38]},
+  "Caméra arrière":{"iPhone 12":[35,25],"iPhone 12 Pro":[60,30],"iPhone 12 Pro Max":[65,30],"iPhone 13":[40,25],"iPhone 13 Pro":[70,30],"iPhone 13 Pro Max":[75,30],"iPhone 14":[50,28],"iPhone 14 Plus":[55,28],"iPhone 14 Pro":[90,35],"iPhone 14 Pro Max":[95,35],"iPhone 15":[60,28],"iPhone 15 Plus":[65,28],"iPhone 15 Pro":[110,35],"iPhone 15 Pro Max":[120,35],"iPhone 16":[70,28],"iPhone 16 Plus":[75,28],"iPhone 16 Pro":[130,38],"iPhone 16 Pro Max":[145,38]},
+};
+
+// ═══════════════════════════ STATE ═══════════════════════════
+let state = {
+  nav: 'prix',
+  prix: { series: 'iPhone 13', mode: 'both' },
+  repa: { series: 'iPhone 13', mIdx: 0, rate: 25, sel: {} },
+  eval: { series: 'iPhone 13', mIdx: 0, condNow: 'bonne', condAfter: 'tb', offered: '', rate: 25, repairs: {} },
+};
+
+// ═══════════════════════════ HELPERS ═══════════════════════════
+function pNum(v,hi=false){
+  if(typeof v==='number') return v;
+  const p=String(v).split('-');
+  return hi?parseInt(p[p.length-1]):parseInt(p[0]);
+}
+function fmtV(v){return typeof v==='number'?v+'$':v+'$';}
+function profit(b,s){return pNum(s)-pNum(b,true);}
+function getBase(model){return model.replace(/\s+\d+(?:\/\d+)?Go$/i,'').trim();}
+function cl(c){return `color:${c};`}
+function bg(c){return `background:${c};`}
+const C={bg:'#07070f',surface:'#0d0d1a',surface2:'#111120',border:'#1a1f35',muted:'#2d3555',dim:'#4a5270',text:'#8892b0',bright:'#ccd6f6',accent:'#6366f1',accentL:'#a5b4fc',blue:'#38bdf8',green:'#4ade80',orange:'#fb923c',red:'#f87171',yellow:'#facc15',teal:'#2dd4bf'};
+
+// ═══════════════════════════ NAVIGATE ═══════════════════════════
+function navigate(tab){
+  state.nav=tab;
+  document.querySelectorAll('.nav-btn').forEach(b=>{b.classList.remove('active');});
+  document.querySelectorAll('.nav-dot').forEach(d=>{d.style.display='none';});
+  document.getElementById('nav-'+tab).classList.add('active');
+  document.getElementById('dot-'+tab).style.display='block';
+  render();
+}
+
+// ═══════════════════════════ PRIX ═══════════════════════════
+function renderPrix(){
+  const {series,mode} = state.prix;
+  const rows = PRICING[series];
+  const series_keys = Object.keys(PRICING);
+  const isBoth = mode==='both';
+
+  const seriesChips = series_keys.map(s=>`
+    <button class="chip ${s===series?'active':'inactive'}" onclick="setSeries('prix','${s}')" style="margin-right:5px;margin-bottom:5px;">${s}</button>
+  `).join('');
+
+  const modeChips = [['both','Achat + Vente'],['buy','Achat seul'],['sell','Vente seule']].map(([id,lbl])=>`
+    <button class="chip ${id===mode?'active':'inactive'}" onclick="setMode('${id}')" style="margin-right:5px;">${lbl}</button>
+  `).join('');
+
+  const legend = CONDITIONS.map(c=>`
+    <div style="display:flex;align-items:center;gap:5px;">
+      <div style="width:7px;height:7px;border-radius:2px;background:${c.color};"></div>
+      <span style="font-size:10px;${cl(c.color)}">${c.label}</span>
+      <span style="font-size:9px;${cl(C.muted)}>(${c.sub})</span>
+    </div>
+  `).join('');
+
+  // grid cols
+  const gcols = isBoth ? '1fr repeat(4,minmax(0,1fr)) repeat(4,minmax(0,1fr))' : '1fr repeat(4,minmax(0,1fr))';
+
+  const bandLabels = isBoth ? `
+    <div style="display:grid;grid-template-columns:${gcols};gap:2px;padding:0 6px 5px;">
+      <div></div>
+      <div style="grid-column:span 4;text-align:center;font-size:8px;color:#60a5fa;border-bottom:1px solid #1e3a8a;padding-bottom:3px;letter-spacing:.08em;">⬇ MAX ACHAT</div>
+      <div style="grid-column:span 4;text-align:center;font-size:8px;color:#4ade80;border-bottom:1px solid #14532d;padding-bottom:3px;letter-spacing:.08em;">⬆ VENTE</div>
+    </div>
+  ` : '';
+
+  const headerCols = `
+    <div style="display:grid;grid-template-columns:${gcols};gap:2px;padding:6px 6px;border-bottom:1px solid ${C.border};margin-bottom:3px;">
+      <div style="font-size:8px;${cl(C.muted)}letter-spacing:.1em;">MODÈLE</div>
+      ${mode!=='sell'?CONDITIONS.map(c=>`<div style="font-size:7px;color:#3b82f6;text-align:center;">${c.label.slice(0,4).toUpperCase()}</div>`).join(''):''}
+      ${mode!=='buy'?CONDITIONS.map(c=>`<div style="font-size:7px;color:#22c55e;text-align:center;">${c.label.slice(0,4).toUpperCase()}</div>`).join(''):''}
+    </div>
+  `;
+
+  const rowsHTML = rows.map((row,i)=>{
+    const buyCols = mode!=='sell' ? CONDITIONS.map(c=>`
+      <div style="text-align:center;font-size:10px;color:#60a5fa;">${fmtV(row.buy[c.key])}</div>
+    `).join('') : '';
+    const sellCols = mode!=='buy' ? CONDITIONS.map(c=>{
+      const p=profit(row.buy[c.key],row.sell[c.key]);
+      return `<div style="text-align:center;">
+        <div style="font-size:10px;${cl(C.green)}">${fmtV(row.sell[c.key])}</div>
+        ${isBoth?`<div style="font-size:7px;color:#166534;">+${p}$</div>`:''}
+      </div>`;
+    }).join('') : '';
+    return `
+      <div style="display:grid;grid-template-columns:${gcols};gap:2px;padding:8px 6px;background:${i%2===0?C.surface:C.bg};border-radius:6px;margin-bottom:2px;border-left:2px solid ${row.isPro?C.accent:C.muted};">
+        <div style="display:flex;align-items:center;gap:4px;min-width:0;overflow:hidden;">
+          ${row.isPro?`<span style="font-size:6px;background:#1e1b4b;color:#818cf8;padding:1px 4px;border-radius:3px;letter-spacing:.04em;flex-shrink:0;">PRO</span>`:''}
+          <span style="font-size:10px;${cl(row.isPro?'#a5b4fc':C.text)}overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${row.model}</span>
+        </div>
+        ${buyCols}${sellCols}
+      </div>
+    `;
+  }).join('');
+
+  return `
+    <div style="display:flex;flex-wrap:wrap;gap:0;margin-bottom:10px;">${seriesChips}</div>
+    <div style="display:flex;flex-wrap:wrap;gap:0;margin-bottom:12px;">${modeChips}</div>
+    <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;">${legend}</div>
+    ${bandLabels}${headerCols}${rowsHTML}
+    <div style="margin-top:14px;padding:10px 12px;background:${C.surface};border-radius:8px;border:1px solid ${C.border};">
+      <p style="font-size:10px;${cl(C.dim)}">· Prix <strong style="${cl(C.text)}">après réparation</strong> · Sans répa: −20-30$ · Scrap = pièces uniquement · ±10% selon saison</p>
+    </div>
+  `;
+}
+
+function setSeries(section,s){
+  if(section==='prix') state.prix.series=s;
+  else if(section==='repa'){state.repa.series=s;state.repa.mIdx=0;state.repa.sel={};}
+  else if(section==='eval'){state.eval.series=s;state.eval.mIdx=0;state.eval.repairs={};}
+  render();
+}
+function setMode(m){state.prix.mode=m;render();}
+
+// ═══════════════════════════ RÉPA ═══════════════════════════
+function renderRepa(){
+  const {series,mIdx,rate,sel}=state.repa;
+  const models=PRICING[series];
+  const model=models[Math.min(mIdx,models.length-1)];
+  const base=getBase(model.model);
+  const repairTypes=Object.keys(REPAIRS);
+
+  let parts=0,mins=0;
+  repairTypes.forEach(t=>{if(sel[t]){const d=REPAIRS[t][base];if(d){parts+=d[0];mins+=d[1];}}});
+  const labor=(mins/60)*rate;
+  const total=Math.round(parts+labor);
+
+  const sellB=pNum(model.sell.bonne);
+  const sellTB=pNum(model.sell.tb);
+  const sellM=pNum(model.sell.mint);
+
+  const seriesChips=Object.keys(PRICING).map(s=>`
+    <button class="chip ${s===series?'active':'inactive'}" onclick="setSeries('repa','${s}')" style="margin-right:5px;margin-bottom:5px;">${s}</button>
+  `).join('');
+
+  const modelOpts=models.map((m,i)=>`<option value="${i}" ${i===mIdx?'selected':''}>${m.model}</option>`).join('');
+
+  const repairRows=repairTypes.map(type=>{
+    const d=REPAIRS[type][base];
+    const on=!!sel[type];
+    const mo=d?(d[1]/60*rate).toFixed(0):0;
+    const tot=d?d[0]+Number(mo):0;
+    return `
+      <div class="repair-row ${on?'selected':''}" onclick="toggleRepair('repa','${type}')" style="opacity:${d?1:0.3};cursor:${d?'pointer':'not-allowed'};">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div class="checkbox ${on?'checked':''}">
+            ${on?`<span style="font-size:9px;color:white;line-height:1;">✓</span>`:''}
+          </div>
+          <span style="font-size:12px;${cl(on?C.bright:C.text)}font-weight:${on?500:400};">${type}</span>
+        </div>
+        ${d?`
+          <div style="display:flex;gap:10px;font-size:10px;align-items:center;">
+            <span style="${cl(C.orange)}">${d[0]}$</span>
+            <span style="${cl(C.dim)}">${d[1]}min</span>
+            <span style="${cl(on?C.accentL:C.muted)}font-weight:${on?600:400};font-size:11px;">${tot}$</span>
+          </div>
+        `:`<span style="font-size:10px;${cl(C.muted)}">N/D</span>`}
+      </div>
+    `;
+  }).join('');
+
+  const roiNet=sellTB-sellB-total;
+  const roiH=mins>0?(roiNet/(mins/60)).toFixed(0):null;
+
+  return `
+    <p style="font-size:11px;${cl(C.dim)}margin-bottom:14px;line-height:1.6;">Coût réel (pièces + ton temps) et valeur ajoutée par réparation.</p>
+    <div style="display:flex;flex-wrap:wrap;">${seriesChips}</div>
+    <select onchange="setModelIdx('repa',this.value)" style="background:${C.surface2};border:1px solid ${C.border};${cl(C.text)}padding:8px 12px;border-radius:8px;font-size:12px;width:100%;margin-bottom:14px;">${modelOpts}</select>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+      <div class="section-label" style="margin:0;">TAUX HORAIRE</div>
+      <input type="number" value="${rate}" onchange="setRate('repa',this.value)" style="background:${C.surface2};border:1px solid ${C.border};${cl(C.bright)}padding:6px 10px;border-radius:7px;font-size:13px;width:70px;"/>
+      <span style="font-size:11px;${cl(C.dim)}">$/h</span>
+    </div>
+    <div class="section-label">RÉPARATIONS DISPONIBLES</div>
+    <div style="display:flex;flex-direction:column;gap:5px;margin-bottom:16px;">${repairRows}</div>
+    <div class="card">
+      <div class="section-label">RÉSUMÉ</div>
+      ${[['Pièces',parts+'$',C.orange],['Temps',mins+' min',C.dim],["Main d'œuvre",labor.toFixed(0)+'$',C.blue],['TOTAL',total+'$',C.accentL]].map(([l,v,col])=>`
+        <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid ${C.border};">
+          <span style="font-size:11px;${cl(C.dim)}">${l}</span>
+          <span style="font-size:12px;${cl(col)}font-weight:${l==='TOTAL'?700:400};">${v}</span>
+        </div>
+      `).join('')}
+      <div style="margin-top:12px;padding:11px 12px;background:#050d08;border-radius:8px;border:1px solid #14532d;">
+        <div style="font-size:9px;color:#4ade80;margin-bottom:8px;letter-spacing:.08em;">💡 VALEUR DE PASSAGE D'ÉTAT — ${model.model}</div>
+        ${[['Bonne → Très Bonne',sellTB-sellB],['Très Bonne → Mint',sellM-sellTB],['Bonne → Mint',sellM-sellB]].map(([lbl,val])=>`
+          <div style="display:flex;justify-content:space-between;padding:3px 0;">
+            <span style="font-size:11px;${cl(C.dim)}">${lbl}</span>
+            <span style="font-size:12px;${cl(C.green)}font-weight:600;">+${val}$</span>
+          </div>
+        `).join('')}
+        ${total>0?`
+          <div style="margin-top:8px;padding-top:8px;border-top:1px solid ${C.border};">
+            <div style="display:flex;justify-content:space-between;">
+              <span style="font-size:11px;${cl(C.dim)}">ROI net Bonne→TB après répa</span>
+              <span style="font-size:13px;${cl(roiNet>=0?C.green:C.red)}font-weight:700;">${roiNet>=0?'+':''}${roiNet}$</span>
+            </div>
+            ${roiH?`<div style="display:flex;justify-content:space-between;margin-top:3px;">
+              <span style="font-size:11px;${cl(C.dim)}">ROI horaire</span>
+              <span style="font-size:12px;${cl(C.teal)}font-weight:600;">${roiH}$/h</span>
+            </div>`:''}
+          </div>
+        `:''}
+      </div>
+    </div>
+  `;
+}
+
+function toggleRepair(section,type){
+  if(section==='repa') state.repa.sel[type]=!state.repa.sel[type];
+  else state.eval.repairs[type]=!state.eval.repairs[type];
+  render();
+}
+function setModelIdx(section,val){
+  if(section==='repa'){state.repa.mIdx=Number(val);state.repa.sel={};}
+  else{state.eval.mIdx=Number(val);state.eval.repairs={};}
+  render();
+}
+function setRate(section,val){
+  if(section==='repa') state.repa.rate=Number(val);
+  else state.eval.rate=Number(val);
+  render();
+}
+
+// ═══════════════════════════ ÉVAL ═══════════════════════════
+function renderEval(){
+  const {series,mIdx,condNow,condAfter,offered,rate,repairs}=state.eval;
+  const models=PRICING[series];
+  const model=models[Math.min(mIdx,models.length-1)];
+  const base=getBase(model.model);
+
+  let parts=0,mins=0;
+  Object.entries(repairs).forEach(([t,on])=>{if(on){const d=REPAIRS[t][base];if(d){parts+=d[0];mins+=d[1];}}});
+  const labor=(mins/60)*rate;
+  const repTotal=Math.round(parts+labor);
+  const buyMax=pNum(model.buy[condNow],true);
+  const sellTgt=pNum(model.sell[condAfter]);
+  const offNum=parseFloat(offered)||0;
+  const net=sellTgt-offNum-repTotal;
+  const roi=mins>0?net/(mins/60):net;
+  const suggested=Math.max(0,sellTgt-repTotal-75);
+
+  let verdict,vColor;
+  if(!offered){verdict='Entrez un prix →';vColor=C.dim;}
+  else if(net>=90&&(mins===0||roi>=70)){verdict='✅ EXCELLENT';vColor='#4ade80';}
+  else if(net>=60){verdict='👍 BON DEAL';vColor=C.green;}
+  else if(net>=30){verdict='🤔 NÉGOCIER';vColor=C.yellow;}
+  else if(net>=0){verdict='⚠️ RISQUÉ';vColor=C.orange;}
+  else{verdict='❌ PASSER';vColor=C.red;}
+
+  const borderColor=vColor===C.dim?C.border:vColor+'55';
+
+  const seriesChips=Object.keys(PRICING).map(s=>`
+    <button class="chip ${s===series?'active':'inactive'}" onclick="setSeries('eval','${s}')" style="margin-right:5px;margin-bottom:5px;">${s}</button>
+  `).join('');
+
+  const modelOpts=models.map((m,i)=>`<option value="${i}" ${i===mIdx?'selected':''}>${m.model}</option>`).join('');
+
+  const condBlock=(label,val,setter)=>`
+    <div>
+      <div class="section-label">${label.toUpperCase()}</div>
+      ${CONDITIONS.map(c=>`
+        <button onclick="${setter}('${c.key}')" style="width:100%;padding:7px 10px;border-radius:7px;font-size:11px;text-align:left;border:1px solid ${val===c.key?c.color:C.border};background:${val===c.key?c.color+'18':'transparent'};${cl(val===c.key?c.color:C.dim)}cursor:pointer;margin-bottom:4px;font-family:'DM Mono',monospace;">
+          <div style="font-weight:${val===c.key?600:400};">${c.label}</div>
+          <div style="font-size:9px;opacity:.7;margin-top:1px;">${c.sub}</div>
+        </button>
+      `).join('')}
+    </div>
+  `;
+
+  const repairBtns=Object.keys(REPAIRS).map(type=>{
+    const d=REPAIRS[type][base];
+    const on=!!repairs[type];
+    return `<button onclick="toggleRepair('eval','${type}')" style="padding:6px 12px;border-radius:20px;font-size:11px;border:1px solid ${on?C.orange:C.border};background:${on?'#1c1008':'transparent'};${cl(on?C.orange:d?C.dim:C.muted)}cursor:${d?'pointer':'not-allowed'};opacity:${d?1:0.3};font-family:'DM Mono',monospace;margin-bottom:5px;margin-right:5px;">${on?'✓ ':''}${type}${d?` · ${d[0]}$`:''}</button>`;
+  }).join('');
+
+  const breakdown=offered?[
+    ['Prix offert',offNum+'$',C.text,true],
+    ...(repTotal>0?[['Pièces répa',parts+'$',C.orange,false],["Main d'œuvre",labor.toFixed(0)+'$',C.blue,false]]:[]),
+    ...(mins>0?[['Temps répa',mins+' min',C.dim,false]]:[]),
+    ['PROFIT NET',(net>=0?'+':'')+net.toFixed(0)+'$',net>=50?C.green:net>=0?C.yellow:C.red,true],
+  ].map(([l,v,col,bold])=>`
+    <div style="display:flex;justify-content:space-between;padding:4px 0;">
+      <span style="font-size:11px;${cl(C.dim)}">${l}</span>
+      <span style="font-size:12px;${cl(col)}font-weight:${bold?700:400};">${v}</span>
+    </div>
+  `).join(''):'';
+
+  return `
+    <p style="font-size:11px;${cl(C.dim)}margin-bottom:14px;line-height:1.6;">Décidez en temps réel: modèle, état, prix, réparations → verdict instantané.</p>
+    <div style="display:flex;flex-wrap:wrap;">${seriesChips}</div>
+    <select onchange="setModelIdx('eval',this.value)" style="background:${C.surface2};border:1px solid ${C.border};${cl(C.text)}padding:8px 12px;border-radius:8px;font-size:12px;width:100%;margin-bottom:14px;">${modelOpts}</select>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+      ${condBlock('État actuel',condNow,'setCondNow')}
+      ${condBlock('État après répa',condAfter,'setCondAfter')}
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+      <div>
+        <div class="section-label">PRIX DEMANDÉ ($CAD)</div>
+        <input type="number" value="${offered}" oninput="setOffered(this.value)" placeholder="ex: 280"
+          style="background:${C.surface2};border:1px solid ${offered?C.accent:C.border};${cl(C.bright)}padding:10px 14px;border-radius:8px;font-size:18px;width:100%;"/>
+      </div>
+      <div>
+        <div class="section-label">TAUX HORAIRE ($)</div>
+        <input type="number" value="${rate}" onchange="setRate('eval',this.value)"
+          style="background:${C.surface2};border:1px solid ${C.border};${cl(C.text)}padding:10px 14px;border-radius:8px;font-size:18px;width:100%;"/>
+      </div>
+    </div>
+    <div class="section-label">RÉPARATIONS REQUISES (optionnel)</div>
+    <div style="display:flex;flex-wrap:wrap;margin-bottom:18px;">${repairBtns}</div>
+
+    <div style="padding:18px;border-radius:12px;background:${C.surface};border:2px solid ${borderColor};transition:border-color .3s;">
+      <div style="text-align:center;padding:8px 0 14px;border-bottom:1px solid ${C.border};">
+        <div style="font-family:'Sora',sans-serif;font-size:24px;font-weight:700;${cl(vColor)}letter-spacing:-.5px;">${verdict}</div>
+        ${offered?`
+          <div style="font-size:11px;${cl(C.dim)}margin-top:6px;">
+            Profit estimé: <span style="${cl(net>=0?C.green:C.red)}font-weight:700;">${net>=0?'+':''}${net.toFixed(0)}$</span>
+            ${mins>0?`<span style="${cl(C.teal)}margin-left:10px;">ROI: ${roi.toFixed(0)}$/h</span>`:''}
+          </div>
+        `:''}
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:14px 0;border-bottom:1px solid ${C.border};">
+        ${[['Max achat',buyMax+'$','#60a5fa','État actuel'],['Vente cible',sellTgt+'$',C.green,'Après réparation'],['Réparations',repTotal>0?repTotal+'$':'—',C.orange,'Pièces + MO'],['Achat suggéré',suggested+'$',C.accentL,'Pour 75$+ marge']].map(([lbl,val,col,hint])=>`
+          <div style="padding:10px 12px;background:${C.bg};border-radius:8px;border:1px solid ${C.border};">
+            <div style="font-size:8px;${cl(C.muted)}margin-bottom:2px;letter-spacing:.06em;">${lbl.toUpperCase()}</div>
+            <div style="font-size:16px;${cl(col)}font-weight:700;">${val}</div>
+            <div style="font-size:8px;${cl(C.muted)}margin-top:2px;">${hint}</div>
+          </div>
+        `).join('')}
+      </div>
+      ${offered?`<div style="padding-top:10px;">${breakdown}</div>`:''}
+    </div>
+  `;
+}
+
+function setCondNow(v){state.eval.condNow=v;render();}
+function setCondAfter(v){state.eval.condAfter=v;render();}
+function setOffered(v){state.eval.offered=v;render();}
+
+// ═══════════════════════════ MARCHÉ ═══════════════════════════
+function renderMarche(){
+  const insights=[
+    ['📈','Meilleurs modèles à Joliette','iPhone 13 Pro / 14 Pro = sweet spot volume + marge (95-135$). iPhone 16 = moins de volume mais marge +130-185$. Éviter 12 64Go (marge < 65$, marché saturé).'],
+    ['🔋','Batterie = ROI #1','25-38$ pièces · 20-25 min → +40-60$ sur vente. ROI horaire souvent >200$/h. Remplacer TOUJOURS si santé < 85%.'],
+    ['📅','Saisonnalité Lanaudière','Nov-Déc: +10-15% (Noël). Août-Sept: +8% (rentrée). Jan-Fév: −5% (creux post-fêtes). Acheter en janvier, vendre en sept-novembre.'],
+    ['🛒','Sources locales','FB Marketplace Joliette, Kijiji Lanaudière, groupes AVE. Polyvalentes = source régulière 12-13. Réseau perso > annonces publiques (−10%).'],
+    ['⚠️','Vérifications obligatoires','iCloud verrouillé = valeur 0$. Face ID défectueux = −50-80$. Tester: appel, WiFi, BT, GPS, HP, micro, Face ID, port charge. TOUT.'],
+    ['💰','Rentabilité cible','Objectif 50$/h net minimum. Cycle complet = 2-3h. Viser 120-180$ marge brute/unité pour être rentable durablement.'],
+  ];
+  const margins=[
+    ['iPhone 12 standard','60-85$','⬇ Saturé'],
+    ['iPhone 12 Pro/Max','90-115$','Stable'],
+    ['iPhone 13 standard','75-100$','Bon volume'],
+    ['iPhone 13 Pro/Max','95-135$','⭐ Meilleur'],
+    ['iPhone 14 standard','80-110$','↑ Croissance'],
+    ['iPhone 14 Pro/Max','105-145$','⭐ Top'],
+    ['iPhone 15+','110-160$','Moins local'],
+    ['iPhone 16+','130-185$','Risque élevé'],
+  ];
+  const plan=[
+    'Viser 5 unités en rotation — seuil de rentabilité stable',
+    'Spécialiser: 13 Pro / 14 Pro = meilleur ratio effort/marge',
+    'Remplacer systématiquement toutes batteries < 85% (ROI>200$/h)',
+    'Créer 3 templates annonces réutilisables (Mint / TB / Bonne)',
+    'Logger chaque deal: achat · répa · vente · marge · temps',
+    'Seuil: ne jamais acheter si marge nette < 60$ après tout',
+    'Acheter en janvier (creux), stocker, vendre août-novembre',
+    'Réseau local: 1 deal connaissances > 3 deals marketplace',
+    'Maîtriser: Face ID, Touch ID, iCloud, baseband, caméras',
+    'Réévaluer les prix chaque trimestre selon marché réel',
+  ];
+
+  return `
+    ${insights.map(([icon,title,body])=>`
+      <div class="card">
+        <div style="display:flex;gap:10px;">
+          <span style="font-size:20px;flex-shrink:0;line-height:1;">${icon}</span>
+          <div>
+            <div style="font-size:12px;${cl('#ccd6f6')}font-weight:600;margin-bottom:5px;">${title}</div>
+            <div style="font-size:11px;${cl(C.dim)}line-height:1.65;">${body}</div>
+          </div>
+        </div>
+      </div>
+    `).join('')}
+
+    <div class="card" style="margin-top:6px;">
+      <div class="section-label">📊 MARGES TYPIQUES — JOLIETTE</div>
+      ${margins.map(([model,margin,note])=>`
+        <div style="display:grid;grid-template-columns:2fr 70px 1fr;gap:4px;padding:6px 0;border-bottom:1px solid ${C.border};align-items:center;">
+          <span style="font-size:11px;${cl(C.text)}">${model}</span>
+          <span style="font-size:12px;${cl(C.green)}font-weight:600;text-align:right;">${margin}</span>
+          <span style="font-size:9px;${cl(C.dim)}padding-left:8px;">${note}</span>
+        </div>
+      `).join('')}
+    </div>
+
+    <div class="card" style="margin-top:6px;">
+      <div class="section-label">⚡ AUTO VS MANUEL</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div>
+          <div style="font-size:11px;${cl(C.green)}font-weight:600;margin-bottom:8px;">✅ Automatiser</div>
+          ${['Calcul prix (cette app)','Templates FB/Kijiji','Suivi inventaire','Photos fond blanc','Rappels follow-up'].map(i=>`<div style="font-size:10px;${cl(C.dim)}padding:3px 0;">· ${i}</div>`).join('')}
+        </div>
+        <div>
+          <div style="font-size:11px;color:#818cf8;font-weight:600;margin-bottom:8px;">🧠 Manuel</div>
+          ${['Évaluation physique','Test Face ID/GPS','Négociation locale','Problèmes cachés','Réputation client'].map(i=>`<div style="font-size:10px;${cl(C.dim)}padding:3px 0;">· ${i}</div>`).join('')}
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:6px;border-color:#38bdf840;">
+      <div class="section-label">📋 PLAN D'ACTION PRIORITAIRE</div>
+      ${plan.map((text,i)=>`
+        <div style="display:flex;gap:10px;padding:6px 0;border-bottom:1px solid ${C.border};">
+          <span style="font-size:11px;${cl(C.blue)}font-weight:700;min-width:16px;">${i+1}.</span>
+          <span style="font-size:11px;${cl(C.dim)}line-height:1.55;">${text}</span>
+        </div>
+      `).join('')}
+    </div>
+
+    <div class="card" style="margin-top:6px;">
+      <div class="section-label">🧠 CONNAISSANCES CRITIQUES</div>
+      ${[
+        ['Face ID / Touch ID','Irréparable si endommagé = −50-100$. Tester AVANT achat.','#f87171'],
+        ['Batterie santé','< 85% = remplacer. Réglages → Batterie → Santé.','#facc15'],
+        ['iCloud','Apple ID + mdp en personne. Vérifier avant de payer.','#f87171'],
+        ['Baseband réseau','Tester appel + données. Sans réseau = pièces seulement.','#fb923c'],
+        ['Caméras','Toutes les focales, portrait, vidéo 4K.','#38bdf8'],
+        ['Connectique','Port oxydé = remplacement 20-28$.','#4ade80'],
+      ].map(([lbl,desc,col])=>`
+        <div style="display:flex;gap:10px;padding:7px 0;border-bottom:1px solid ${C.border};align-items:flex-start;">
+          <div style="width:6px;height:6px;border-radius:50%;background:${col};margin-top:4px;flex-shrink:0;"></div>
+          <div>
+            <div style="font-size:11px;${cl('#ccd6f6')}font-weight:600;">${lbl}</div>
+            <div style="font-size:10px;${cl(C.dim)}margin-top:2px;line-height:1.5;">${desc}</div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+// ═══════════════════════════ RENDER ═══════════════════════════
+function render(){
+  const c=document.getElementById('content');
+  if(state.nav==='prix') c.innerHTML=renderPrix();
+  else if(state.nav==='repa') c.innerHTML=renderRepa();
+  else if(state.nav==='eval') c.innerHTML=renderEval();
+  else c.innerHTML=renderMarche();
+}
+
+render();
+</script>
+
+</body>
+</html>
